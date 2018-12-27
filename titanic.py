@@ -17,7 +17,6 @@ warnings.filterwarnings("ignore")
 
 train = pd.read_csv("train.csv")
 test = pd.read_csv("test.csv")
-
 train_test_data = [train, test]  # combine dataset
 # анализируем данные
 
@@ -82,15 +81,21 @@ test["Age"].fillna(test.groupby('Title')['Age'].transform("median"), inplace=Tru
 # age_sex_median = all_data.groupby("Title")["Age"].median()
 # all_data["Age"] = all_data.apply(lambda raw: age_sex_median[raw["Title"]] if pd.isnull(raw["Age"]) else raw["Age"], axis=1)
 # all_data['Age'] = all_data['Age'].astype(int)
-# all_data['AgeBand'] = pd.cut(all_data['Age'], 5)
+# all_data['AgeBand'] = pd.qcut(all_data['Age'], 5)
 # print(all_data[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index=False).mean().sort_values(by='AgeBand', ascending=True))
 # all_data = all_data.drop('AgeBand', axis=1)
+
 for dataset in train_test_data:
     dataset.loc[dataset['Age'] <= 16, 'Age'] = 0,
     dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 32), 'Age'] = 1,
     dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 48), 'Age'] = 2,
     dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 64), 'Age'] = 3,
     dataset.loc[dataset['Age'] > 64, 'Age'] = 4
+
+# fig, (axis1,axis2) = plt.subplots(1, 2, figsize=(15, 5))
+# sns.countplot(x='Age', data=train, ax=axis1)
+# sns.countplot(x='Survived', hue="Age", data=train, order=[1,0], ax=axis2)
+# plt.show()
 
 for dataset in train_test_data:
     dataset['Embarked'] = dataset['Embarked'].fillna('S')
@@ -102,11 +107,28 @@ for dataset in train_test_data:
 train["Fare"].fillna(train.groupby("Pclass")["Fare"].transform("median"), inplace=True)
 test["Fare"].fillna(test.groupby("Pclass")["Fare"].transform("median"), inplace=True)
 
+# all_data = pd.concat([train, test])
+# age_sex_median = all_data.groupby("Pclass")["Fare"].median()
+# all_data["Fare"] = all_data.apply(lambda raw: age_sex_median[raw["Pclass"]] if pd.isnull(raw["Fare"]) else raw["Fare"], axis=1)
+# # all_data['Fare'] = all_data['Fare'].astype(int)
+# all_data['FareBand'] = pd.qcut(all_data['Fare'], 4)
+# print(all_data[['FareBand', 'Survived']].groupby(['FareBand'], as_index=False).mean().sort_values(by='FareBand', ascending=True))
+# all_data = all_data.drop('FareBand', axis=1)
+
 for dataset in train_test_data:
-    dataset.loc[dataset['Fare'] <= 17, 'Fare'] = 0,
-    dataset.loc[(dataset['Fare'] > 17) & (dataset['Fare'] <= 30), 'Fare'] = 1,
-    dataset.loc[(dataset['Fare'] > 30) & (dataset['Fare'] <= 100), 'Fare'] = 2,
-    dataset.loc[dataset['Fare'] >= 100, 'Fare'] = 3
+    # dataset.loc[dataset['Fare'] <= 17, 'Fare'] = 0,
+    # dataset.loc[(dataset['Fare'] > 17) & (dataset['Fare'] <= 30), 'Fare'] = 1,
+    # dataset.loc[(dataset['Fare'] > 30) & (dataset['Fare'] <= 100), 'Fare'] = 2,
+    # dataset.loc[dataset['Fare'] >= 100, 'Fare'] = 3
+    dataset.loc[dataset['Fare'] <= 7.896, 'Fare'] = 0,
+    dataset.loc[(dataset['Fare'] > 7.896) & (dataset['Fare'] <= 14.454), 'Fare'] = 1,
+    dataset.loc[(dataset['Fare'] > 14.454) & (dataset['Fare'] <= 31.275), 'Fare'] = 2,
+    dataset.loc[dataset['Fare'] >= 31.275, 'Fare'] = 3
+
+# fig, (axis1,axis2) = plt.subplots(1, 2, figsize=(15, 5))
+# sns.countplot(x='Fare', data=train, ax=axis1)
+# sns.countplot(x='Survived', hue="Fare", data=train, order=[1,0], ax=axis2)
+# plt.show()
 
 for dataset in train_test_data:
     dataset['Cabin'] = dataset['Cabin'].str[:1]
