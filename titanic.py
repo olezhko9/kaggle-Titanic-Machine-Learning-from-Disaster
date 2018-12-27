@@ -51,40 +51,32 @@ train_test_data = [train, test]  # combine dataset
 #
 # print(pd.crosstab(train['Title'], train['Sex']))
 
+### Name
 all_data = pd.concat([train, test])
 all_data['Title'] = all_data['Name'].str.extract(' ([A-Za-z]+)\.', expand=False)
 # print(all_data['Title'].value_counts())
 
+titles = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Other": 5}
+
 for dataset in train_test_data:
-    # dataset['Title'] = dataset["Title"].map(title_mapping)
-    titles = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Other": 5}
     dataset['Title'] = dataset.Name.str.extract(' ([A-Za-z]+)\.', expand=False)
     dataset['Title'] = dataset['Title'].replace(['Lady', 'Countess', 'Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev', 'Sir',
                                                  'Jonkheer', 'Dona', 'Mlle', 'Ms', 'Mme'], 'Other')
-    # dataset['Title'] = dataset['Title'].replace('Mlle', 'Miss')
-    # dataset['Title'] = dataset['Title'].replace('Ms', 'Miss')
-    # dataset['Title'] = dataset['Title'].replace('Mme', 'Mrs')
-    print(dataset['Title'].value_counts())
     dataset['Title'] = dataset['Title'].map(titles)
 
-# delete unnecessary feature from dataset
-train.drop('Name', axis=1, inplace=True)
-test.drop('Name', axis=1, inplace=True)
-
+### Sex
 sex_mapping = {"male": 0, "female": 1}
 for dataset in train_test_data:
     dataset['Sex'] = dataset['Sex'].map(sex_mapping)
 
+### Age
 train["Age"].fillna(train.groupby("Title")["Age"].transform("median"), inplace=True)
 test["Age"].fillna(test.groupby('Title')['Age'].transform("median"), inplace=True)
 
-# all_data = pd.concat([train, test])
-# age_sex_median = all_data.groupby("Title")["Age"].median()
-# all_data["Age"] = all_data.apply(lambda raw: age_sex_median[raw["Title"]] if pd.isnull(raw["Age"]) else raw["Age"], axis=1)
-# all_data['Age'] = all_data['Age'].astype(int)
-# all_data['AgeBand'] = pd.qcut(all_data['Age'], 5)
+all_data = pd.concat([train, test])
+all_data['Age'] = all_data['Age'].astype(int)
+all_data['AgeBand'] = pd.cut(all_data['Age'], 5)
 # print(all_data[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index=False).mean().sort_values(by='AgeBand', ascending=True))
-# all_data = all_data.drop('AgeBand', axis=1)
 
 for dataset in train_test_data:
     dataset.loc[dataset['Age'] <= 16, 'Age'] = 0,
@@ -93,28 +85,26 @@ for dataset in train_test_data:
     dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 64), 'Age'] = 3,
     dataset.loc[dataset['Age'] > 64, 'Age'] = 4
 
-# fig, (axis1,axis2) = plt.subplots(1, 2, figsize=(15, 5))
-# sns.countplot(x='Age', data=train, ax=axis1)
-# sns.countplot(x='Survived', hue="Age", data=train, order=[1,0], ax=axis2)
+fig, (axis1,axis2) = plt.subplots(1, 2, figsize=(15, 5))
+sns.countplot(x='Age', data=train, ax=axis1)
+sns.countplot(x='Survived', hue="Age", data=train, order=[1,0], ax=axis2)
 # plt.show()
+
+### Embarked
+# print(all_data['Embarked'].value_counts())
+embarked_mapping = {'S': 0, 'C': 1, 'Q': 2}
 
 for dataset in train_test_data:
     dataset['Embarked'] = dataset['Embarked'].fillna('S')
-
-embarked_mapping = {'S': 0, 'C': 1, 'Q': 2}
-for dataset in train_test_data:
     dataset['Embarked'] = dataset['Embarked'].map(embarked_mapping)
 
+### Fare
 train["Fare"].fillna(train.groupby("Pclass")["Fare"].transform("median"), inplace=True)
 test["Fare"].fillna(test.groupby("Pclass")["Fare"].transform("median"), inplace=True)
 
-# all_data = pd.concat([train, test])
-# age_sex_median = all_data.groupby("Pclass")["Fare"].median()
-# all_data["Fare"] = all_data.apply(lambda raw: age_sex_median[raw["Pclass"]] if pd.isnull(raw["Fare"]) else raw["Fare"], axis=1)
-# # all_data['Fare'] = all_data['Fare'].astype(int)
-# all_data['FareBand'] = pd.qcut(all_data['Fare'], 4)
+all_data = pd.concat([train, test])
+all_data['FareBand'] = pd.cut(all_data['Fare'], 4)
 # print(all_data[['FareBand', 'Survived']].groupby(['FareBand'], as_index=False).mean().sort_values(by='FareBand', ascending=True))
-# all_data = all_data.drop('FareBand', axis=1)
 
 for dataset in train_test_data:
     dataset.loc[dataset['Fare'] <= 7.896, 'Fare'] = 0,
@@ -122,21 +112,27 @@ for dataset in train_test_data:
     dataset.loc[(dataset['Fare'] > 14.454) & (dataset['Fare'] <= 31.275), 'Fare'] = 2,
     dataset.loc[dataset['Fare'] >= 31.275, 'Fare'] = 3
 
-# fig, (axis1,axis2) = plt.subplots(1, 2, figsize=(15, 5))
-# sns.countplot(x='Fare', data=train, ax=axis1)
-# sns.countplot(x='Survived', hue="Fare", data=train, order=[1,0], ax=axis2)
+fig, (axis1, axis2) = plt.subplots(1, 2, figsize=(15, 5))
+sns.countplot(x='Fare', data=train, ax=axis1)
+sns.countplot(x='Survived', hue="Fare", data=train, order=[1,0], ax=axis2)
 # plt.show()
 
+### Cabin
 for dataset in train_test_data:
     dataset['Cabin'] = dataset['Cabin'].str[:1]
+    dataset['Cabin'] = dataset['Cabin'].fillna("U")
 
-cabin_mapping = {"A": 0, "B": 0.4, "C": 0.8, "D": 1.2, "E": 1.6, "F": 2, "G": 2.4, "T": 2.8}
+all_data = pd.concat([train, test])
+# print(all_data['Cabin'].value_counts())
+
+cabin_mapping = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "T": 8, "U": 8}
+# cabin_mapping = {"A": 0, "B": 0.4, "C": 0.8, "D": 1.2, "E": 1.6, "F": 2, "G": 2.4, "T": 2.8}
 for dataset in train_test_data:
     dataset['Cabin'] = dataset['Cabin'].map(cabin_mapping)
 
 # fill missing Fare with median fare for each Pclass
-train["Cabin"].fillna(train.groupby("Pclass")["Cabin"].transform("median"), inplace=True)
-test["Cabin"].fillna(test.groupby("Pclass")["Cabin"].transform("median"), inplace=True)
+# train["Cabin"].fillna(train.groupby("Pclass")["Cabin"].transform("median"), inplace=True)
+# test["Cabin"].fillna(test.groupby("Pclass")["Cabin"].transform("median"), inplace=True)
 
 # train["FamilySize"] = train["SibSp"] + train["Parch"] + 1
 # test["FamilySize"] = test["SibSp"] + test["Parch"] + 1
@@ -150,7 +146,7 @@ for dataset in train_test_data:
     dataset['Family'].loc[dataset['Family'] == 1] = 0
 
 
-features_drop = ['Ticket', 'SibSp', 'Parch']
+features_drop = ['Name', 'Ticket', 'SibSp', 'Parch']
 train = train.drop(features_drop, axis=1)
 test = test.drop(features_drop, axis=1)
 train = train.drop(['PassengerId'], axis=1)
