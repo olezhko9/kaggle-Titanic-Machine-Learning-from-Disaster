@@ -42,28 +42,29 @@ train_test_data = [train, test]  # combine dataset
 # plt.show()
 
 
-# for dataset in train_test_data:
-#     dataset['Title'] = dataset['Name'].str.extract(' ([A-Za-z]+)\.', expand=False)
-
-# title_mapping = {"Mr": 0, "Miss": 1, "Mrs": 2,
-#                  "Master": 3, "Dr": 3, "Rev": 3, "Col": 3, "Major": 3, "Mlle": 3, "Countess": 3,
-#                  "Ms": 3, "Lady": 3, "Jonkheer": 3, "Don": 3, "Dona": 3, "Mme": 3, "Capt": 3, "Sir": 3}
-
-
 # Пропущенные данные
-total = train.isnull().sum().sort_values(ascending=False)
-print(total.head(5))
+# total = train.isnull().sum().sort_values(ascending=False)
+# print(total.head(5))
 
+# for dataset in train_test_data:
+#     dataset['Title'] = dataset.Name.str.extract(' ([A-Za-z]+)\.', expand=False)
 #
+# print(pd.crosstab(train['Title'], train['Sex']))
+
+all_data = pd.concat([train, test])
+all_data['Title'] = all_data['Name'].str.extract(' ([A-Za-z]+)\.', expand=False)
+# print(all_data['Title'].value_counts())
+
 for dataset in train_test_data:
     # dataset['Title'] = dataset["Title"].map(title_mapping)
-    titles = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Rare": 5}
+    titles = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Other": 5}
     dataset['Title'] = dataset.Name.str.extract(' ([A-Za-z]+)\.', expand=False)
     dataset['Title'] = dataset['Title'].replace(['Lady', 'Countess', 'Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev', 'Sir',
-                                                 'Jonkheer', 'Dona'], 'Rare')
-    dataset['Title'] = dataset['Title'].replace('Mlle', 'Miss')
-    dataset['Title'] = dataset['Title'].replace('Ms', 'Miss')
-    dataset['Title'] = dataset['Title'].replace('Mme', 'Mrs')
+                                                 'Jonkheer', 'Dona', 'Mlle', 'Ms', 'Mme'], 'Other')
+    # dataset['Title'] = dataset['Title'].replace('Mlle', 'Miss')
+    # dataset['Title'] = dataset['Title'].replace('Ms', 'Miss')
+    # dataset['Title'] = dataset['Title'].replace('Mme', 'Mrs')
+    print(dataset['Title'].value_counts())
     dataset['Title'] = dataset['Title'].map(titles)
 
 # delete unnecessary feature from dataset
@@ -116,10 +117,6 @@ test["Fare"].fillna(test.groupby("Pclass")["Fare"].transform("median"), inplace=
 # all_data = all_data.drop('FareBand', axis=1)
 
 for dataset in train_test_data:
-    # dataset.loc[dataset['Fare'] <= 17, 'Fare'] = 0,
-    # dataset.loc[(dataset['Fare'] > 17) & (dataset['Fare'] <= 30), 'Fare'] = 1,
-    # dataset.loc[(dataset['Fare'] > 30) & (dataset['Fare'] <= 100), 'Fare'] = 2,
-    # dataset.loc[dataset['Fare'] >= 100, 'Fare'] = 3
     dataset.loc[dataset['Fare'] <= 7.896, 'Fare'] = 0,
     dataset.loc[(dataset['Fare'] > 7.896) & (dataset['Fare'] <= 14.454), 'Fare'] = 1,
     dataset.loc[(dataset['Fare'] > 14.454) & (dataset['Fare'] <= 31.275), 'Fare'] = 2,
